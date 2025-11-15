@@ -16,7 +16,7 @@ The API will be available at `http://localhost:5000`
 
 ## To View Graph
 
-### Generate Ports Data -> Enable Live Updates -> Tension Analysis -> Graph
+### Generate Ports Data -> Enable Live Updates -> Tension Analysis -> Graphs
 ![Alt text](Graph.png)
 
 ### Home
