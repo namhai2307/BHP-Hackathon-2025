@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tension Analysis - Mooring Data Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .priority-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+
+        .priority-critical {
+            background: #f44336;
+            color: white;
+        }
+
+        .priority-high {
+            background: #FF9800;
+            color: white;
+        }
+
+        .priority-medium {
+            background: #FFC107;
+            color: #333;
+        }
+
+        .priority-low {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .bollard-analysis-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .bollard-analysis-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transform: translateX(5px);
+        }
+
+        #graphsContainer {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .graph-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .graph-card h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .graph-canvas-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            height: 280px;
+        }
+
+        .graph-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            font-style: italic;
+            font-size: 1em;
+        }
+
+        .bollard-analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .bollard-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bollard-title h3 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .location-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-box.critical {
+            border-left-color: #f44336;
+        }
+
+        .metric-box.dangerous {
+            border-left-color: #FF9800;
+        }
+
+        .metric-box.attention {
+            border-left-color: #FFC107;
+        }
+
+        .metric-box.faulted {
+            border-left-color: #9e9e9e;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .hooks-analysis-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-data-message h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .dropdown-container {
+            position: relative;
+        }
+
+        .risk-dropdown {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            min-width: 160px;
+        }
+
+        .risk-dropdown:hover {
+            background: #f0f4ff;
+        }
+
+        .risk-dropdown:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .risk-dropdown option {
+            padding: 8px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #999;
+        }
+
+        /* Alert Cards Styling */
+        .alert-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-left: 5px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-card.alert-critical {
+            border-left-color: #f44336;
+            background: linear-gradient(to right, #fff5f5 0%, white 100%);
+        }
+
+        .alert-card.alert-warning {
+            border-left-color: #FF9800;
+            background: linear-gradient(to right, #fff8f0 0%, white 100%);
+        }
+
+        .alert-card.alert-slope {
+            border-left-color: #2196F3;
+            background: linear-gradient(to right, #f0f7ff 0%, white 100%);
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .alert-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .alert-level {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .alert-card h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 1.3em;
+        }
+
+        .alert-ship {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .alert-details {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .alert-hook {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .alert-tension {
+            font-weight: 600;
+            color: #f44336;
+        }
+
+        .alert-reason {
+            color: #333;
+            font-weight: 600;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .resolve-btn {
+            padding: 8px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .resolve-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .resolve-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Notification Badge */
+        .filter-btn {
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 0.75em;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(244, 67, 54, 0.4);
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 2px 6px rgba(244, 67, 54, 0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Tension Analysis Dashboard</h1>
+            <p class="subtitle">Prioritized Bollard Risk Assessment</p>
+        </header>
+
+        <div class="analysis-header">
+            <a href="/" class="back-btn">← Back to Main Dashboard</a>
+            <div style="display: flex; gap: 10px;">
+                <button id="liveUpdateBtn" class="btn btn-secondary">📡 Enable Live Updates</button>
+                <button id="refreshBtn" class="btn btn-primary">🔄 Refresh Data</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading analysis data...</p>
+        </div>
+
+        <div id="filterSection" class="filter-section" style="display: none;">
+            <h3>Filter by Risk Level</h3>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Bollards</button>
+                <div class="dropdown-container">
+                    <select id="riskLevelDropdown" class="risk-dropdown">
+                        <option value="" disabled selected>Filter by Risk...</option>
+                        <option value="critical">Critical Only</option>
+                        <option value="dangerous">Dangerous+</option>
+                        <option value="attention">Attention+</option>
+                        <option value="faulted">Faulted</option>
+                    </select>
+                </div>
+                <button class="filter-btn" data-filter="graphs" id="graphsBtn">📊 Graphs</button>
+                <button class="filter-btn" data-filter="alerts" id="alertsBtn">
+                    🚨 Alerts
+                    <span id="alertBadge" class="notification-badge" style="display: none;">0</span>
+                </button>
+            </div>
+            <div style="margin-top: 15px;">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search berth/bollard (e.g., 'A', 'B-2', 'Berth A')">
+            </div>
+        </div>
+
+        <div id="analysisContainer"></div>
+
+        <div id="alertsContainer" style="display: none;"></div>
+
+        <div id="graphsContainer" style="display: none;"></div>
+
+        <div id="noData" class="no-data-message" style="display: none;">
+            <h2>No Port Data Available</h2>
+            <p>Please generate port data from the main dashboard first.</p>
+            <a href="/" class="btn btn-primary">Go to Main Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        let allBollards = [];
+        let currentFilter = 'all';
+        let currentSearchTerm = '';
+        let liveUpdateInterval = null;
+        let isLiveUpdateEnabled = false;
+        let tensionHistory = {}; // Store tension history for each bollard
+        let chartInstances = {}; // Store chart instances
+        let resolvedAlerts = new Set(); // Store resolved alert IDs
+        let activeAlerts = {}; // Store active alerts that persist until resolved
+
+        const liveUpdateBtn = document.getElementById('liveUpdateBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // Check for live update state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const liveUpdateState = localStorage.getItem('liveUpdateEnabled');
+            if (liveUpdateState === 'true') {
+                // Auto-enable live updates
+                liveUpdateBtn.click();
+            }
+        });
+
+        // Live Update Mode Toggle
+        liveUpdateBtn.addEventListener('click', async () => {
+            if (!isLiveUpdateEnabled) {
+                // Enable live updates
+                isLiveUpdateEnabled = true;
+                liveUpdateBtn.textContent = '⏸️ Pause Live Updates';
+                liveUpdateBtn.classList.remove('btn-secondary');
+                liveUpdateBtn.classList.add('btn-warning');
+                
+                // Save state to localStorage
+                localStorage.setItem('liveUpdateEnabled', 'true');
+                
+                // Start auto-update every 1.5 seconds
+                liveUpdateInterval = setInterval(async () => {
+                    try {
+                        await fetch('/api/port/update', { method: 'POST' });
+                        await loadAnalysisData(true); // Pass true for silent update
+                        updateTensionHistory(); // Track tension history
+                    } catch (error) {
+                        console.error('Error during live update:', error);
+                    }
+                }, 1500);
+                
+                // Show notification
+                showNotification('Live updates enabled');
+            } else {
+                // Disable live updates
+                isLiveUpdateEnabled = false;
+                liveUpdateBtn.textContent = '📡 Enable Live Updates';
+                liveUpdateBtn.classList.remove('btn-warning');
+                liveUpdateBtn.classList.add('btn-secondary');
+                
+                // Save state to localStorage
+                localStorage.setItem('liveUpdateEnabled', 'false');
+                
+                if (liveUpdateInterval) {
+                    clearInterval(liveUpdateInterval);
+                    liveUpdateInterval = null;
+                }
+                
+                // Show notification
+                showNotification('Live updates paused');
+            }
+        });
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 2500);
+        }
+
+        function showUpdateIndicator() {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(33, 150, 243, 0.9);
+                color: white;
+                padding: 8px 15px;
+                border-radius: 20px;
+                font-size: 0.85em;
+                z-index: 10000;
+                animation: fadeInOut 1s ease;
+            `;
+            indicator.textContent = '🔄 Updated';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => indicator.remove(), 1000);
+        }
+
+        function updateTensionHistory() {
+            const currentTime = new Date();
+            const fiveMinutesAgo = new Date(currentTime - 5 * 60 * 1000);
+
+            allBollards.forEach(bollard => {
+                const bollardKey = `${bollard.berth_name}_${bollard.bollard_name}`;
+                
+                if (!tensionHistory[bollardKey]) {
+                    tensionHistory[bollardKey] = {
+                        timestamps: [],
+                        hooks: {},
+                        lastUpdateTime: null
+                    };
+                }
+
+                const history = tensionHistory[bollardKey];
+                
+                // Only add if this is a new data point (avoid duplicates)
+                const isNewDataPoint = !history.lastUpdateTime || 
+                    (currentTime - history.lastUpdateTime) >= 1000; // At least 1 second apart
+                
+                if (isNewDataPoint) {
+                    // Add current timestamp
+                    history.timestamps.push(currentTime);
+                    history.lastUpdateTime = currentTime;
+
+                    // Track each hook's tension
+                    bollard.hooks.forEach(hook => {
+                        if (!history.hooks[hook.name]) {
+                            history.hooks[hook.name] = [];
+                        }
+                        history.hooks[hook.name].push(hook.tension !== null ? hook.tension : null);
+                    });
+
+                    // Remove data older than 5 minutes
+                    while (history.timestamps.length > 0 && history.timestamps[0] < fiveMinutesAgo) {
+                        history.timestamps.shift();
+                        Object.keys(history.hooks).forEach(hookName => {
+                            history.hooks[hookName].shift();
+                        });
+                    }
+
+                    // Limit to 200 data points max (5 min at 1.5s interval)
+                    const maxPoints = 200;
+                    if (history.timestamps.length > maxPoints) {
+                        history.timestamps = history.timestamps.slice(-maxPoints);
+                        Object.keys(history.hooks).forEach(hookName => {
+                            history.hooks[hookName] = history.hooks[hookName].slice(-maxPoints);
+                        });
+                    }
+                }
+            });
+
+            // Update charts only if new data was added
+            updateCharts();
+        }
+
+        function updateCharts() {
+            allBollards.forEach((bollard, index) => {
+                const bollardKey = `${bollard.berth_name}_${bollard.bollard_name}`;
+                
+                // Check which view we're in and update accordingly
+                if (currentFilter === 'graphs') {
+                    const chartId = `graph-chart-${index}`;
+                    const canvas = document.getElementById(chartId);
+                    
+                    if (canvas && tensionHistory[bollardKey]) {
+                        updateChart(chartId, bollardKey);
+                    }
+                } else {
+                    const chartId = `chart-${index}`;
+                    const canvas = document.getElementById(chartId);
+                    
+                    if (canvas && tensionHistory[bollardKey]) {
+                        updateChart(chartId, bollardKey);
+                    }
+                }
+            });
+            
+            // Update alert badge count regardless of current view
+            const alertCount = calculateAlertCount();
+            updateAlertBadge(alertCount);
+        }
+
+        function createChart(canvasId, bollardKey) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            const history = tensionHistory[bollardKey];
+            if (!history || history.timestamps.length === 0) {
+                return;
+            }
+
+            // Destroy existing chart if any
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+
+            const datasets = [];
+            const colors = [
+                '#667eea', '#f44336', '#4CAF50', '#FF9800', '#2196F3', 
+                '#9C27B0', '#00BCD4', '#FFEB3B', '#795548', '#E91E63'
+            ];
+
+            let colorIndex = 0;
+            Object.keys(history.hooks).forEach(hookName => {
+                const tensionData = history.hooks[hookName];
+                datasets.push({
+                    label: hookName,
+                    data: tensionData,
+                    borderColor: colors[colorIndex % colors.length],
+                    backgroundColor: colors[colorIndex % colors.length] + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 4
+                });
+                colorIndex++;
+            });
+
+            const labels = history.timestamps.map(t => {
+                const now = new Date();
+                const diffMs = now - t;
+                const diffSec = Math.floor(diffMs / 1000);
+                if (diffSec < 60) return `${diffSec}s ago`;
+                const diffMin = Math.floor(diffSec / 60);
+                return `${diffMin}m ago`;
+            });
+
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 300,
+                        easing: 'linear'
+                    },
+                    transitions: {
+                        active: {
+                            animation: {
+                                duration: 300
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Tension History (Last 5 Minutes)',
+                            font: { size: 12 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Tension (T)'
+                            },
+                            ticks: {
+                                font: { size: 10 }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 9 },
+                                maxTicksLimit: 10
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        function updateChart(canvasId, bollardKey) {
+            if (!chartInstances[canvasId]) {
+                createChart(canvasId, bollardKey);
+                return;
+            }
+
+            const chart = chartInstances[canvasId];
+            const history = tensionHistory[bollardKey];
+
+            if (!history || history.timestamps.length === 0) return;
+
+            // Get the latest timestamp
+            const latestTimestamp = history.timestamps[history.timestamps.length - 1];
+            const now = new Date();
+            const diffMs = now - latestTimestamp;
+            const diffSec = Math.floor(diffMs / 1000);
+            const newLabel = diffSec < 60 ? `${diffSec}s ago` : `${Math.floor(diffSec / 60)}m ago`;
+
+            // Add new label
+            chart.data.labels.push(newLabel);
+
+            // Add new data point to each dataset
+            chart.data.datasets.forEach((dataset) => {
+                const hookName = dataset.label;
+                if (history.hooks[hookName]) {
+                    const latestValue = history.hooks[hookName][history.hooks[hookName].length - 1];
+                    dataset.data.push(latestValue);
+                }
+            });
+
+            // Remove oldest data if we exceed max points
+            const maxPoints = 200;
+            if (chart.data.labels.length > maxPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(dataset => {
+                    dataset.data.shift();
+                });
+            }
+
+            chart.update('none'); // No animation for smooth real-time feel
+        }
+
+        async function loadAnalysisData(silent = false) {
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('analysisContainer');
+            const noData = document.getElementById('noData');
+            const filterSection = document.getElementById('filterSection');
+
+            if (!silent) {
+                loading.style.display = 'flex';
+                container.innerHTML = '';
+                noData.style.display = 'none';
+            }
+
+            try {
+                const response = await fetch('/api/port/analysis');
+                
+                if (!response.ok) {
+                    throw new Error('No data available');
+                }
+
+                const data = await response.json();
+                allBollards = data.bollards;
+                
+                if (allBollards.length === 0) {
+                    noData.style.display = 'block';
+                } else {
+                    filterSection.style.display = 'block';
+                    // Check if we're currently viewing graphs
+                    if (currentFilter === 'graphs') {
+                        displayGraphs();
+                    } else {
+                        displayBollards(allBollards);
+                    }
+                }
+                
+                if (silent) {
+                    showUpdateIndicator();
+                }
+            } catch (error) {
+                console.error('Error loading analysis:', error);
+                if (!silent) {
+                    noData.style.display = 'block';
+                }
+            }
+
+            if (!silent) {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayBollards(bollards) {
+            const container = document.getElementById('analysisContainer');
+            container.innerHTML = '';
+
+            // Filter bollards based on current filter
+            let filteredBollards = bollards;
+            if (currentFilter === 'critical') {
+                filteredBollards = bollards.filter(b => b.critical_count > 0);
+            } else if (currentFilter === 'dangerous') {
+                filteredBollards = bollards.filter(b => b.critical_count > 0 || b.dangerous_count > 0);
+            } else if (currentFilter === 'attention') {
+                filteredBollards = bollards.filter(b => b.critical_count > 0 || b.dangerous_count > 0 || b.attention_count > 0);
+            } else if (currentFilter === 'faulted') {
+                filteredBollards = bollards.filter(b => b.faulted_count > 0);
+            }
+
+            // Apply search filter
+            if (currentSearchTerm) {
+                filteredBollards = filteredBollards.filter(b => {
+                    const searchLower = currentSearchTerm.toLowerCase().trim();
+                    const berthName = b.berth_name.toLowerCase();
+                    const bollardName = b.bollard_name.toLowerCase();
+                    
+                    // Check if search matches berth name or bollard name
+                    return berthName.includes(searchLower) || bollardName.includes(searchLower);
+                });
+            }
+
+            if (filteredBollards.length === 0) {
+                container.innerHTML = '<div class="no-data-message"><h2>No bollards match this filter</h2></div>';
+                return;
+            }
+
+            filteredBollards.forEach((bollard, index) => {
+                // Determine priority level
+                let priorityBadge = '';
+                if (bollard.critical_count > 0) {
+                    priorityBadge = '<span class="priority-badge priority-critical">🔴 CRITICAL</span>';
+                } else if (bollard.dangerous_count > 0) {
+                    priorityBadge = '<span class="priority-badge priority-high">🟠 HIGH RISK</span>';
+                } else if (bollard.attention_count > 0) {
+                    priorityBadge = '<span class="priority-badge priority-medium">🟡 ATTENTION</span>';
+                } else {
+                    priorityBadge = '<span class="priority-badge priority-low">🟢 NORMAL</span>';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bollard-analysis-card';
+                card.innerHTML = `
+                    <div class="bollard-analysis-header">
+                        <div class="bollard-title">
+                            <h3>#${index + 1} - ${bollard.bollard_name}</h3>
+                            ${priorityBadge}
+                        </div>
+                        <div class="location-info">
+                            <strong>${bollard.berth_name}</strong> | Ship: ${bollard.ship_name}
+                            ${bollard.vessel_id !== 'N/A' ? `(${bollard.vessel_id})` : ''}
+                        </div>
+                    </div>
+
+                    <div class="metrics-row">
+                        <div class="metric-box critical">
+                            <div class="metric-value">${bollard.critical_count}</div>
+                            <div class="metric-label">Critical Hooks</div>
+                        </div>
+                        <div class="metric-box dangerous">
+                            <div class="metric-value">${bollard.dangerous_count}</div>
+                            <div class="metric-label">Dangerous Hooks</div>
+                        </div>
+                        <div class="metric-box attention">
+                            <div class="metric-value">${bollard.attention_count}</div>
+                            <div class="metric-label">Attention Hooks</div>
+                        </div>
+                        <div class="metric-box faulted">
+                            <div class="metric-value">${bollard.faulted_count}</div>
+                            <div class="metric-label">Faulted Hooks</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">${bollard.total_tension.toFixed(1)}T</div>
+                            <div class="metric-label">Total Tension</div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: #764ba2; margin-bottom: 10px;">🪝 Hooks Detail</h4>
+                    <div class="hooks-analysis-grid">
+                        ${bollard.hooks.map(hook => {
+                            let hookClass = 'hook-item';
+                            let tensionClass = '';
+                            let tensionLevel = '';
+                            
+                            if (hook.faulted) {
+                                hookClass += ' faulted';
+                            } else if (hook.tension !== null) {
+                                if (hook.tension >= 0 && hook.tension <= 39) {
+                                    tensionClass = 'tension-safe';
+                                    tensionLevel = 'Safe';
+                                } else if (hook.tension >= 40 && hook.tension <= 69) {
+                                    tensionClass = 'tension-attention';
+                                    tensionLevel = 'Attention';
+                                } else if (hook.tension >= 70 && hook.tension <= 85) {
+                                    tensionClass = 'tension-dangerous';
+                                    tensionLevel = 'Dangerous';
+                                } else if (hook.tension >= 86 && hook.tension <= 99) {
+                                    tensionClass = 'tension-critical';
+                                    tensionLevel = 'Critical';
+                                }
+                                hookClass += ` ${tensionClass}`;
+                            }
+
+                            return `
+                                <div class="${hookClass}" title="${hook.name} - Tension: ${hook.tension !== null ? hook.tension + 'T (' + tensionLevel + ')' : 'N/A'}">
+                                    <span class="hook-name">${hook.name.replace('Hook ', 'H')}</span>
+                                    ${!hook.faulted && hook.tension !== null ? `<span class="hook-tension ${tensionClass}">${hook.tension}T</span>` : ''}
+                                    ${!hook.faulted && hook.tension === null ? '<span class="hook-no-tension">-</span>' : ''}
+                                    ${hook.attached_line ? `<span class="hook-line">${hook.attached_line}</span>` : ''}
+                                    ${hook.faulted ? '<span class="hook-fault">⚠️ FAULT</span>' : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function displayGraphs() {
+            const container = document.getElementById('graphsContainer');
+            const analysisContainer = document.getElementById('analysisContainer');
+            const graphsContainer = document.getElementById('graphsContainer');
+            const alertsContainer = document.getElementById('alertsContainer');
+            
+            // Destroy existing chart instances before clearing
+            Object.keys(chartInstances).forEach(key => {
+                if (key.startsWith('graph-chart-')) {
+                    if (chartInstances[key]) {
+                        chartInstances[key].destroy();
+                        delete chartInstances[key];
+                    }
+                }
+            });
+            
+            container.innerHTML = '';
+            analysisContainer.style.display = 'none';
+            alertsContainer.style.display = 'none';
+            graphsContainer.style.display = 'grid';
+
+            if (!isLiveUpdateEnabled) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <h2>📊 Live Updates Required</h2>
+                        <p>Enable live updates to see real-time tension graphs</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (allBollards.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <h2>No Data Available</h2>
+                        <p>Please generate port data first</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort bollards alphabetically by berth name then bollard name, and filter out bollards with all null tensions
+            let sortedBollards = [...allBollards]
+                .filter(bollard => {
+                    // Check if all hooks have null tension
+                    const allNull = bollard.hooks.every(hook => hook.tension === null || hook.tension === undefined);
+                    return !allNull; // Only include bollards with at least one non-null tension
+                });
+
+            // Apply search filter
+            if (currentSearchTerm) {
+                sortedBollards = sortedBollards.filter(b => {
+                    const searchLower = currentSearchTerm.toLowerCase().trim();
+                    const berthName = b.berth_name.toLowerCase();
+                    const bollardName = b.bollard_name.toLowerCase();
+                    
+                    // Check if search matches berth name or bollard name
+                    return berthName.includes(searchLower) || bollardName.includes(searchLower);
+                });
+            }
+
+            // Continue with sorting
+            sortedBollards = sortedBollards.map(bollard => {
+                    const bollardKey = `${bollard.berth_name}_${bollard.bollard_name}`;
+                    const history = tensionHistory[bollardKey];
+                    const hookSlopes = {}; // Store slope for each hook
+
+                    if (history && history.timestamps.length >= 2) {
+                        const now = new Date();
+                        const twentySecondsAgo = new Date(now - 20 * 1000);
+                        
+                        // Find data points in last 20 seconds
+                        const recentIndices = [];
+                        for (let i = history.timestamps.length - 1; i >= 0; i--) {
+                            if (history.timestamps[i] >= twentySecondsAgo) {
+                                recentIndices.push(i);
+                            } else {
+                                break;
+                            }
+                        }
+                        
+                        if (recentIndices.length >= 2) {
+                            // Calculate slope for each hook
+                            Object.keys(history.hooks).forEach(hookName => {
+                                const hookData = history.hooks[hookName];
+                                const recentData = recentIndices.map(i => hookData[i]).filter(v => v !== null);
+                                
+                                if (recentData.length >= 2) {
+                                    const firstValue = recentData[recentData.length - 1];
+                                    const lastValue = recentData[0];
+                                    const timeSpan = (history.timestamps[recentIndices[0]] - history.timestamps[recentIndices[recentIndices.length - 1]]) / 1000; // in seconds
+                                    
+                                    if (timeSpan > 0) {
+                                        const slope = (lastValue - firstValue) / timeSpan; // tension change per second
+                                        hookSlopes[hookName] = slope;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    
+                    return { ...bollard, hookSlopes };
+                })
+                .sort((a, b) => {
+                    // Sort alphabetically by berth name, then bollard name
+                    if (a.berth_name !== b.berth_name) {
+                        return a.berth_name.localeCompare(b.berth_name);
+                    }
+                    return a.bollard_name.localeCompare(b.bollard_name);
+                });
+
+            if (sortedBollards.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <h2>No Results Found</h2>
+                        <p>${currentSearchTerm ? 'No bollards match your search criteria' : 'No data available'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            sortedBollards.forEach((bollard, index) => {
+                const bollardKey = `${bollard.berth_name}_${bollard.bollard_name}`;
+                
+                const graphCard = document.createElement('div');
+                graphCard.className = 'graph-card';
+                
+                // Create hook slopes display
+                const hookSlopesHTML = bollard.hookSlopes && Object.keys(bollard.hookSlopes).length > 0
+                    ? `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; margin-bottom: 10px;">
+                        ${Object.entries(bollard.hookSlopes).map(([hookName, slope]) => {
+                            const slopeColor = slope > 0 ? '#f44336' : (slope < 0 ? '#4CAF50' : '#666');
+                            const slopeArrow = slope > 0 ? '↗' : (slope < 0 ? '↘' : '→');
+                            return `<span style="background: ${slopeColor}15; border: 1px solid ${slopeColor}; color: ${slopeColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600;">
+                                ${hookName.replace('Hook ', 'H')}: ${slopeArrow} ${Math.abs(slope).toFixed(2)}T/s
+                            </span>`;
+                        }).join('')}
+                       </div>`
+                    : '';
+                
+                graphCard.innerHTML = `
+                    <h3>${bollard.berth_name} - ${bollard.bollard_name}</h3>
+                    <p style="color: #666; margin-bottom: 5px;">
+                        Ship: ${bollard.ship_name} ${bollard.vessel_id !== 'N/A' ? `(${bollard.vessel_id})` : ''} | 
+                        ${bollard.hooks ? bollard.hooks.length : 0} Hooks | 
+                        Total Tension: ${bollard.total_tension.toFixed(1)}T
+                    </p>
+                    ${hookSlopesHTML}
+                    <div class="graph-canvas-container">
+                        ${tensionHistory[bollardKey] && tensionHistory[bollardKey].timestamps.length > 0 ? `
+                            <canvas id="graph-chart-${index}"></canvas>
+                        ` : `
+                            <div class="graph-placeholder">
+                                Collecting data... Please wait for updates
+                            </div>
+                        `}
+                    </div>
+                `;
+                
+                container.appendChild(graphCard);
+                
+                // Create chart if history exists
+                if (tensionHistory[bollardKey] && tensionHistory[bollardKey].timestamps.length > 0) {
+                    setTimeout(() => {
+                        const chartId = `graph-chart-${index}`;
+                        createChart(chartId, bollardKey);
+                    }, 100);
+                }
+            });
+        }
+
+        function calculateAlertCount() {
+            if (!isLiveUpdateEnabled || allBollards.length === 0) {
+                return 0;
+            }
+
+            const now = new Date();
+
+            // Check for new alerts and add to activeAlerts
+            allBollards.forEach(bollard => {
+                const bollardKey = `${bollard.berth_name}_${bollard.bollard_name}`;
+                const history = tensionHistory[bollardKey];
+
+                if (!history || history.timestamps.length < 2) return;
+
+                // Check if we have at least 20 seconds of data
+                const oldestTimestamp = history.timestamps[0];
+                const newestTimestamp = history.timestamps[history.timestamps.length - 1];
+                const dataSpan = (newestTimestamp - oldestTimestamp) / 1000; // in seconds
+                
+                if (dataSpan < 20) return; // Need at least 20 seconds of data
+
+                bollard.hooks.forEach(hook => {
+                    const alertId = `${bollardKey}_${hook.name}`;
+                    
+                    // Skip if already resolved
+                    if (resolvedAlerts.has(alertId)) return;
+
+                    const hookData = history.hooks[hook.name];
+                    if (!hookData) return;
+
+                    // Criteria 1: Consecutive time in dangerous zone (70+)
+                    let dangerousConsecutiveTime = 0;
+                    
+                    // Check from most recent backwards for consecutive dangerous readings
+                    for (let i = history.timestamps.length - 1; i >= 0; i--) {
+                        const tension = hookData[i];
+                        if (tension === null || tension === undefined) break;
+                        
+                        if (tension >= 70) { // Dangerous or above
+                            const timestamp = history.timestamps[i];
+                            const timeDiff = (now - timestamp) / 1000; // seconds ago
+                            dangerousConsecutiveTime = timeDiff;
+                        } else {
+                            break; // Stop if we hit a non-dangerous value
+                        }
+                    }
+
+                    // Criteria 2: High slope (>10 T/s)
+                    const twentySecondsAgo = new Date(now - 20 * 1000);
+                    const recentIndices = [];
+                    for (let i = history.timestamps.length - 1; i >= 0; i--) {
+                        if (history.timestamps[i] >= twentySecondsAgo) {
+                            recentIndices.push(i);
+                        } else {
+                            break;
+                        }
+                    }
+
+                    let slope = 0;
+                    if (recentIndices.length >= 2) {
+                        const recentData = recentIndices.map(i => hookData[i]).filter(v => v !== null);
+                        if (recentData.length >= 2) {
+                            const firstValue = recentData[recentData.length - 1];
+                            const lastValue = recentData[0];
+                            const timeSpan = (history.timestamps[recentIndices[0]] - history.timestamps[recentIndices[recentIndices.length - 1]]) / 1000;
+                            if (timeSpan > 0) {
+                                slope = (lastValue - firstValue) / timeSpan;
+                            }
+                        }
+                    }
+
+                    // Check alert conditions and add to activeAlerts if triggered
+                    let alertReason = '';
+                    let alertLevel = '';
+                    
+                    if (dangerousConsecutiveTime >= 20) {
+                        alertReason = `Dangerous level for ${dangerousConsecutiveTime.toFixed(0)}s consecutively`;
+                        alertLevel = 'critical';
+                    } else if (slope > 10) {
+                        alertReason = `High tension rate: ↗ ${slope.toFixed(2)}T/s`;
+                        alertLevel = 'slope';
+                    }
+
+                    if (alertReason && !activeAlerts[alertId]) {
+                        activeAlerts[alertId] = {
+                            id: alertId,
+                            bollardKey,
+                            berthName: bollard.berth_name,
+                            bollardName: bollard.bollard_name,
+                            shipName: bollard.ship_name,
+                            vesselId: bollard.vessel_id,
+                            hookName: hook.name,
+                            tension: hook.tension,
+                            reason: alertReason,
+                            level: alertLevel,
+                            slope: slope,
+                            triggeredAt: new Date()
+                        };
+                    }
+                });
+            });
+
+            return Object.keys(activeAlerts).length;
+        }
+
+        function displayAlerts() {
+            const container = document.getElementById('alertsContainer');
+            const analysisContainer = document.getElementById('analysisContainer');
+            const graphsContainer = document.getElementById('graphsContainer');
+            
+            container.innerHTML = '';
+            analysisContainer.style.display = 'none';
+            graphsContainer.style.display = 'none';
+            container.style.display = 'block';
+
+            if (!isLiveUpdateEnabled) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <h2>🚨 Live Updates Required</h2>
+                        <p>Enable live updates to see alerts</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const now = new Date();
+
+            // Check for new alerts and add to activeAlerts
+            allBollards.forEach(bollard => {
+                const bollardKey = `${bollard.berth_name}_${bollard.bollard_name}`;
+                const history = tensionHistory[bollardKey];
+
+                if (!history || history.timestamps.length < 2) return;
+
+                // Check if we have at least 20 seconds of data
+                const oldestTimestamp = history.timestamps[0];
+                const newestTimestamp = history.timestamps[history.timestamps.length - 1];
+                const dataSpan = (newestTimestamp - oldestTimestamp) / 1000; // in seconds
+                
+                if (dataSpan < 20) return; // Need at least 20 seconds of data
+
+                bollard.hooks.forEach(hook => {
+                    const alertId = `${bollardKey}_${hook.name}`;
+                    
+                    // Skip if already resolved
+                    if (resolvedAlerts.has(alertId)) return;
+
+                    const hookData = history.hooks[hook.name];
+                    if (!hookData) return;
+
+                    // Criteria 1: Consecutive time in dangerous zone (70+)
+                    let dangerousConsecutiveTime = 0;
+                    
+                    // Check from most recent backwards for consecutive dangerous readings
+                    for (let i = history.timestamps.length - 1; i >= 0; i--) {
+                        const tension = hookData[i];
+                        if (tension === null || tension === undefined) break;
+                        
+                        if (tension >= 70) { // Dangerous or above
+                            const timestamp = history.timestamps[i];
+                            const timeDiff = (now - timestamp) / 1000; // seconds ago
+                            dangerousConsecutiveTime = timeDiff;
+                        } else {
+                            break; // Stop if we hit a non-dangerous value
+                        }
+                    }
+
+                    // Criteria 2: High slope (>10 T/s)
+                    const twentySecondsAgo = new Date(now - 20 * 1000);
+                    const recentIndices = [];
+                    for (let i = history.timestamps.length - 1; i >= 0; i--) {
+                        if (history.timestamps[i] >= twentySecondsAgo) {
+                            recentIndices.push(i);
+                        } else {
+                            break;
+                        }
+                    }
+
+                    let slope = 0;
+                    if (recentIndices.length >= 2) {
+                        const recentData = recentIndices.map(i => hookData[i]).filter(v => v !== null);
+                        if (recentData.length >= 2) {
+                            const firstValue = recentData[recentData.length - 1];
+                            const lastValue = recentData[0];
+                            const timeSpan = (history.timestamps[recentIndices[0]] - history.timestamps[recentIndices[recentIndices.length - 1]]) / 1000;
+                            if (timeSpan > 0) {
+                                slope = (lastValue - firstValue) / timeSpan;
+                            }
+                        }
+                    }
+
+                    // Check alert conditions
+                    let alertReason = '';
+                    let alertLevel = '';
+                    
+                    if (dangerousConsecutiveTime >= 30) {
+                        alertReason = `Dangerous level for ${dangerousConsecutiveTime.toFixed(0)}s consecutively`;
+                        alertLevel = 'critical';
+                    } else if (slope > 10) {
+                        alertReason = `High tension rate: ↗ ${slope.toFixed(2)}T/s`;
+                        alertLevel = 'slope';
+                    }
+
+                    if (alertReason) {
+                        // Add to activeAlerts if not already present and not resolved
+                        if (!activeAlerts[alertId] && !resolvedAlerts.has(alertId)) {
+                            activeAlerts[alertId] = {
+                                id: alertId,
+                                bollardKey,
+                                berthName: bollard.berth_name,
+                                bollardName: bollard.bollard_name,
+                                shipName: bollard.ship_name,
+                                vesselId: bollard.vessel_id,
+                                hookName: hook.name,
+                                tension: hook.tension,
+                                reason: alertReason,
+                                level: alertLevel,
+                                slope: slope,
+                                triggeredAt: new Date()
+                            };
+                        } else if (activeAlerts[alertId]) {
+                            // Update current tension and reason for existing alerts
+                            activeAlerts[alertId].tension = hook.tension;
+                            activeAlerts[alertId].reason = alertReason;
+                            activeAlerts[alertId].level = alertLevel;
+                        }
+                    }
+                });
+            });
+
+            // Convert activeAlerts to array for display
+            const alerts = Object.values(activeAlerts);
+
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data-message">
+                        <h2>✅ No Active Alerts</h2>
+                        <p>All hooks are operating within safe parameters</p>
+                    </div>
+                `;
+                updateAlertBadge(0);
+                return;
+            }
+
+            // Sort by level: critical > warning > slope
+            const levelOrder = { critical: 0, warning: 1, slope: 2 };
+            alerts.sort((a, b) => levelOrder[a.level] - levelOrder[b.level]);
+
+            // Update badge count
+            updateAlertBadge(alerts.length);
+
+            alerts.forEach(alert => {
+                const alertCard = document.createElement('div');
+                alertCard.className = `alert-card alert-${alert.level}`;
+                alertCard.id = `alert-${alert.id}`;
+                
+                const levelIcon = alert.level === 'critical' ? '🔴' : alert.level === 'warning' ? '🟠' : '⚡';
+                const levelText = alert.level === 'critical' ? 'CRITICAL ALERT' : alert.level === 'warning' ? 'WARNING ALERT' : 'RAPID CHANGE ALERT';
+                
+                alertCard.innerHTML = `
+                    <div class="alert-header">
+                        <div>
+                            <span class="alert-icon">${levelIcon}</span>
+                            <span class="alert-level">${levelText}</span>
+                        </div>
+                        <button class="resolve-btn" onclick="resolveAlert('${alert.id}')">✓ Resolve</button>
+                    </div>
+                    <h3>${alert.berthName} - ${alert.bollardName}</h3>
+                    <p class="alert-ship">Ship: ${alert.shipName} ${alert.vesselId !== 'N/A' ? `(${alert.vesselId})` : ''}</p>
+                    <div class="alert-details">
+                        <div class="alert-hook">
+                            <strong>${alert.hookName}</strong>
+                            <span class="alert-tension">Current: ${alert.tension ? Math.round(alert.tension) : 'N/A'}T</span>
+                        </div>
+                        <div class="alert-reason">${alert.reason}</div>
+                    </div>
+                `;
+                
+                container.appendChild(alertCard);
+            });
+        }
+
+        function resolveAlert(alertId) {
+            resolvedAlerts.add(alertId);
+            delete activeAlerts[alertId]; // Remove from active alerts
+            
+            const alertCard = document.getElementById(`alert-${alertId}`);
+            if (alertCard) {
+                alertCard.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    alertCard.remove();
+                    
+                    // Check if no alerts remain
+                    const remainingAlerts = Object.keys(activeAlerts).length;
+                    if (remainingAlerts === 0) {
+                        const container = document.getElementById('alertsContainer');
+                        container.innerHTML = `
+                            <div class="no-data-message">
+                                <h2>✅ No Active Alerts</h2>
+                                <p>All hooks are operating within safe parameters</p>
+                            </div>
+                        `;
+                        updateAlertBadge(0);
+                    } else {
+                        // Update badge with remaining alerts
+                        updateAlertBadge(remainingAlerts);
+                    }
+                }, 300);
+            }
+        }
+
+        function updateAlertBadge(count) {
+            const badge = document.getElementById('alertBadge');
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Filter buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                
+                // Reset dropdown when clicking buttons
+                document.getElementById('riskLevelDropdown').value = '';
+                
+                if (currentFilter === 'graphs') {
+                    displayGraphs();
+                } else if (currentFilter === 'alerts') {
+                    displayAlerts();
+                } else {
+                    document.getElementById('graphsContainer').style.display = 'none';
+                    document.getElementById('alertsContainer').style.display = 'none';
+                    document.getElementById('analysisContainer').style.display = 'block';
+                    displayBollards(allBollards);
+                }
+            }
+        });
+
+        // Dropdown filter
+        document.getElementById('riskLevelDropdown').addEventListener('change', (e) => {
+            const selectedValue = e.target.value;
+            if (selectedValue) {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                
+                currentFilter = selectedValue;
+                document.getElementById('graphsContainer').style.display = 'none';
+                document.getElementById('alertsContainer').style.display = 'none';
+                document.getElementById('analysisContainer').style.display = 'block';
+                displayBollards(allBollards);
+            }
+        });
+
+        // Search input
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearchTerm = e.target.value;
+            
+            // Display appropriate view based on current filter
+            if (currentFilter === 'graphs') {
+                displayGraphs();
+            } else if (currentFilter === 'alerts') {
+                displayAlerts();
+            } else {
+                document.getElementById('graphsContainer').style.display = 'none';
+                document.getElementById('alertsContainer').style.display = 'none';
+                document.getElementById('analysisContainer').style.display = 'block';
+                displayBollards(allBollards);
+            }
+        });
+
+        // Refresh button
+        refreshBtn.addEventListener('click', loadAnalysisData);
+
+        // Load data on page load
+        loadAnalysisData();
+    </script>
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        .btn-warning {
+            background: #FFC107 !important;
+            color: #333 !important;
+        }
+    </style>
+</body>
+</html>
