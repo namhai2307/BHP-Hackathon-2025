@@ -15,10 +15,7 @@ python app.py
 The API will be available at `http://localhost:5000`
 
 ## To View Graph
-```bash
-# view graph
-Generate Plot Data -> Enable Live Update -> Tension Analysis -> Graphs
-```
+###Generate Plot Data -> Enable Live Update -> Tension Analysis -> Graphs
 
 ## API Endpoints
 
