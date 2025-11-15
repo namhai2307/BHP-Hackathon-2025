@@ -17,6 +17,7 @@ The API will be available at `http://localhost:5000`
 ## To View Graph
 
 ### Generate Plot Data -> Enable Live Update -> Tension Analysis -> Graphs
+![Alt text](Graph.png)
 
 ## API Endpoints
 
