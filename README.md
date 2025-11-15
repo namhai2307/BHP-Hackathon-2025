@@ -11,10 +11,13 @@ pip install -r requirements.txt
 # Run the Flask app
 python app.py
 ```
-
+## API Endpoints
 The API will be available at `http://localhost:5000`
 
-## API Endpoints
+## To View Graph
+
+### Generate Ports Data -> Enable Live Updates -> Tension Analysis -> Graph
+![Alt text](Graph.png)
 
 ### Home
 - **GET /** - API documentation and available endpoints
