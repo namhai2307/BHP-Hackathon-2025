@@ -1,0 +1,467 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+    padding: 30px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-secondary {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-success {
+    background: #FF9800;
+    color: white;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading p {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #666;
+}
+
+.port-overview {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.port-overview h2 {
+    color: #667eea;
+    margin-bottom: 20px;
+    font-size: 2em;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.berths-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+    gap: 25px;
+}
+
+.berth-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.berth-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.berth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.berth-header h3 {
+    color: #667eea;
+    font-size: 1.5em;
+}
+
+.ship-badge {
+    background: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.ship-badge.empty {
+    background: #9e9e9e;
+}
+
+.berth-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.info-item .label {
+    font-weight: 600;
+    color: #666;
+}
+
+.info-item .value {
+    color: #333;
+    font-weight: 700;
+}
+
+.radars-section,
+.bollards-section {
+    margin-top: 20px;
+}
+
+.radars-section h4,
+.bollards-section h4 {
+    color: #764ba2;
+    margin-bottom: 12px;
+    font-size: 1.1em;
+}
+
+.radars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.radar-item {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid transparent;
+}
+
+.radar-item.active {
+    background: #e8f5e9;
+    border-color: #4CAF50;
+}
+
+.radar-item.inactive {
+    background: #ffebee;
+    border-color: #f44336;
+    opacity: 0.6;
+}
+
+.radar-name {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.radar-distance {
+    font-size: 1.2em;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.radar-change {
+    font-size: 0.85em;
+    color: #666;
+}
+
+.bollards-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.bollard-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.bollard-name {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.05em;
+}
+
+.hooks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hook-item {
+    background: white;
+    border: 2px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    font-size: 0.85em;
+    transition: all 0.3s ease;
+}
+
+.hook-item.faulted {
+    background: #ffebee;
+    border-color: #f44336;
+}
+
+/* Tension-based color coding - these override the default and active styles */
+.hook-item.tension-safe {
+    background: #e8f5e9;
+    border-color: #4CAF50;
+    border-width: 3px;
+}
+
+.hook-item.tension-attention {
+    background: #fff9c4;
+    border-color: #FFC107;
+    border-width: 3px;
+}
+
+.hook-item.tension-dangerous {
+    background: #ffe0b2;
+    border-color: #FF9800;
+    border-width: 3px;
+}
+
+.hook-item.tension-critical {
+    background: #ffcdd2;
+    border-color: #f44336;
+    border-width: 3px;
+    animation: pulse-critical 2s infinite;
+}
+
+@keyframes pulse-critical {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(244, 67, 54, 0);
+    }
+}
+
+.hook-name {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.hook-tension {
+    color: #667eea;
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.hook-tension.tension-safe {
+    color: #4CAF50;
+}
+
+.hook-tension.tension-attention {
+    color: #F9A825;
+}
+
+.hook-tension.tension-dangerous {
+    color: #FF9800;
+}
+
+.hook-tension.tension-critical {
+    color: #f44336;
+    font-weight: 900;
+}
+
+.hook-no-tension {
+    color: #999;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.hook-line {
+    background: #764ba2;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.hook-fault {
+    font-size: 0.9em;
+    color: #f44336;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.berth-summary {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #f0f0f0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.summary-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.summary-badge.success {
+    background: #4CAF50;
+    color: white;
+}
+
+.summary-badge.warning {
+    background: #FF9800;
+    color: white;
+}
+
+.summary-badge.error {
+    background: #f44336;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+    
+    .berths-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .radars-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
