@@ -124,7 +124,7 @@ def get_berths():
                     "hooks": [
                         {
                             "name": hook.name,
-                            "tension": min(hook.tension * random.randint(5, 19), 99) if hook.tension is not None else None,
+                            "tension": hook.tension if hook.tension is not None else None,
                             "faulted": hook.faulted,
                             "attached_line": hook.attached_line
                         }
@@ -179,7 +179,7 @@ def get_berth(berth_name):
                 "hooks": [
                     {
                         "name": hook.name,
-                        "tension": min(hook.tension * random.randint(5, 19), 99) if hook.tension is not None else None,
+                        "tension": hook.tension if hook.tension is not None else None,
                         "faulted": hook.faulted,
                         "attached_line": hook.attached_line
                     }
@@ -242,7 +242,7 @@ def get_statistics():
                 if hook.faulted:
                     faulted_hooks += 1
                 if hook.tension is not None:
-                    total_tension += min(hook.tension * random.randint(5, 19), 99)
+                    total_tension += hook.tension
     
     return jsonify({
         "port_name": port_data.name,
@@ -268,14 +268,14 @@ def get_tension_analysis():
     # Collect all bollards from all berths with priority metrics
     for berth in port_data.berths:
         for bollard in berth.bollards:
-            # Pre-scale tensions for consistent calculations
-            scaled_hooks = [(hook, min(hook.tension * random.randint(5, 19), 99) if hook.tension is not None else None) for hook in bollard.hooks]
+            # Collect hook data
+            hooks_data = [(hook, hook.tension if hook.tension is not None else None) for hook in bollard.hooks]
             
-            critical_count = sum(1 for hook, scaled_tension in scaled_hooks if not hook.faulted and scaled_tension is not None and scaled_tension >= 86)
-            dangerous_count = sum(1 for hook, scaled_tension in scaled_hooks if not hook.faulted and scaled_tension is not None and 70 <= scaled_tension <= 85)
-            attention_count = sum(1 for hook, scaled_tension in scaled_hooks if not hook.faulted and scaled_tension is not None and 40 <= scaled_tension <= 69)
-            faulted_count = sum(1 for hook, scaled_tension in scaled_hooks if hook.faulted)
-            total_tension = sum(scaled_tension for hook, scaled_tension in scaled_hooks if scaled_tension is not None)
+            critical_count = sum(1 for hook, tension in hooks_data if not hook.faulted and tension is not None and tension >= 86)
+            dangerous_count = sum(1 for hook, tension in hooks_data if not hook.faulted and tension is not None and 70 <= tension <= 85)
+            attention_count = sum(1 for hook, tension in hooks_data if not hook.faulted and tension is not None and 40 <= tension <= 69)
+            faulted_count = sum(1 for hook, tension in hooks_data if hook.faulted)
+            total_tension = sum(tension for hook, tension in hooks_data if tension is not None)
             
             bollard_info = {
                 "berth_name": berth.name,
@@ -290,11 +290,11 @@ def get_tension_analysis():
                 "hooks": [
                     {
                         "name": hook.name,
-                        "tension": scaled_tension,
+                        "tension": tension,
                         "faulted": hook.faulted,
                         "attached_line": hook.attached_line
                     }
-                    for hook, scaled_tension in scaled_hooks
+                    for hook, tension in hooks_data
                 ]
             }
             all_bollards.append(bollard_info)
@@ -349,7 +349,7 @@ def download_port_data():
                     "hooks": [
                         {
                             "name": hook.name,
-                            "tension": min(hook.tension * random.randint(5, 19), 99) if hook.tension is not None else None,
+                            "tension": hook.tension if hook.tension is not None else None,
                             "faulted": hook.faulted,
                             "attached_line": hook.attached_line
                         }
